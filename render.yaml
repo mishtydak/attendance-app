@@ -1,6 +1,7 @@
 services:
   - type: web
     name: attendance-app
+    runtime: docker
     plan: free
     buildCommand: "./mvnw clean package"
     startCommand: "java -jar target/*.jar"
