@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Mark Attendance</title>
+    <div th:replace="~{fragments/header :: head}"></div>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: navbar}"></div>
+    <div class="container">
+        <h1>Mark Daily Attendance</h1>
+        <div class="form-container">
+            <h2>Select Date</h2>
+            <form th:action="@{/attendance}" method="get">
+                <input type="date" name="date" th:value="${selectedDate}" onchange="this.form.submit()" required>
+            </form>
+        </div>
+        <h2>Attendance for <span th:text="${#temporals.format(selectedDate, 'MMMM dd, yyyy')}"></span></h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Status</th>
+                    <th>Action (Mark Absent / Present)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="record : ${attendanceRecords}">
+                    <td th:text="${record.employee.name}"></td>
+                    <td>
+                        <strong th:text="${record.status}"
+                                th:classappend="${record.status.name() == 'PRESENT'} ? 'text-success' : 'text-danger'">
+                        </strong>
+                    </td>
+                    <td>
+                        <form th:action="${record.status.name() == 'ABSENT'} ? @{/attendance/mark-present} : @{/attendance/mark-absent}" method="post" class="action-form">
+                            <input type="hidden" name="recordId" th:value="${record.id}" />
+                            <input type="hidden" name="date" th:value="${selectedDate}" />
+                            <label class="switch">
+                                <input type="checkbox" onchange="this.form.submit()" th:checked="${record.status.name() == 'PRESENT'}">
+                                <span class="slider"></span>
+                            </label>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

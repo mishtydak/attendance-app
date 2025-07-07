@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Home - Attendance App</title>
+    <div th:replace="~{fragments/header :: head}"></div>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: navbar}"></div>
+    <div class="container">
+        <h1 th:text="${pageTitle}">Welcome</h1>
+        <p>Use the navigation bar above to manage or mark attendance.</p>
+    </div>
+</body>
+</html>

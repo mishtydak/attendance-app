@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Employee Management</title>
+    <div th:replace="~{fragments/header :: head}"></div>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: navbar}"></div>
+    <div class="container">
+        <h1>Tapasvi Management</h1>
+        <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
+        <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
+        <div class="form-container">
+            <h2>Add New Tapasvi</h2>
+            <form th:action="@{/employees/add}" method="post">
+                <input type="text" name="name" placeholder="Full Name" required>
+                <input type="tel" name="phoneNumber" placeholder="Phone Number" required>
+                <button type="submit">Add</button>
+            </form>
+        </div>
+        <h2>Availabel Tapasvi</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Phone Number</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr th:each="emp : ${employees}">
+                    <td th:text="${emp.id}"></td>
+                    <td th:text="${emp.name}"></td>
+                    <td th:text="${emp.phoneNumber}"></td>
+                    <td>
+                        <form th:action="@{/employees/delete/{id}(id=${emp.id})}" method="post" style="display:inline;">
+                            <button type="submit" class="delete" onclick="return confirm('Are you sure?');">Delete</button>
+                        </form>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Attendance Report</title>
+    <div th:replace="~{fragments/header :: head}"></div>
+</head>
+<body>
+    <div th:replace="~{fragments/header :: navbar}"></div>
+    <div class="container">
+        <h1>Attendance Report Generator</h1>
+        <div class="form-container">
+            <!-- I've kept your custom "Tapasvi" text -->
+            <h2>Select Tapasvi by ID</h2>
+            <form th:action="@{/report}" method="get">
+                <label for="employeeIdInput">Enter Tapasvi ID Number:</label>
+                
+                <!-- The <select> dropdown is replaced with this <input> -->
+                <input type="number" 
+                       id="employeeIdInput" 
+                       name="employeeId" 
+                       placeholder="e.g., 1"
+                       required
+                       th:value="${selectedEmployeeId}" />
+
+                <button type="submit">Generate Report</button>
+            </form>
+        </div>
+
+        <!-- This section for showing results remains exactly the same -->
+        <div th:if="${attendanceRecords}">
+            <h2>Report Results</h2>
+            <table>
+                <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Status</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="record : ${attendanceRecords}">
+                    <td th:text="${#temporals.format(record.date, 'MMMM dd, yyyy')}"></td>
+                    <td th:text="${record.status}" th:classappend="${record.status.name() == 'PRESENT'} ? 'text-success' : 'text-danger'"></td>
+                </tr>
+                </tbody>
+            </table>
+            <div th:if="${#lists.isEmpty(attendanceRecords)}" class="message">
+                No attendance records found for the selected employee.
+            </div>
+        </div>
+
+        <!-- Add a message for when an invalid ID is entered -->
+        <div th:if="${param.employeeId != null and attendanceRecords == null}" class="message error">
+            No employee found with the ID: <span th:text="${param.employeeId}"></span>. Please enter a valid ID.
+        </div>
+    </div>
+</body>
+</html>
