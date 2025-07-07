@@ -1,7 +1,6 @@
 services:
   - type: web
     name: attendance-app
-    env: java
     plan: free
     buildCommand: "./mvnw clean package"
     startCommand: "java -jar target/*.jar"
