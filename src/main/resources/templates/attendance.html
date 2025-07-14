@@ -2,49 +2,356 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Mark Attendance</title>
+    <!-- This will include your main CSS from the header fragment -->
     <div th:replace="~{fragments/header :: head}"></div>
+    
+    <!-- We are adding the mobile-optimized visual styles here -->
+    <style>
+ /* Universal rule for predictable sizing */
+*, *:before, *:after {
+    box-sizing: border-box;
+}
+
+/* General body styling with a soft cream background */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: #fffaf0; /* Very light cream/ivory */
+    color: #5d4037; /* Earthy brown for text */
+    line-height: 1.6;
+}
+
+/* Main container */
+.container {
+    padding: 1rem;
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+/* Main page title */
+h1 {
+    text-align: center;
+    color: #e67e22; /* Burnt orange */
+    margin-bottom: 1.5rem;
+    font-weight: 300; /* Lighter font weight for a modern look */
+}
+
+/* Section headers */
+h2 {
+    color: #d35400; /* Deeper orange for subtitles */
+    border-bottom: 1px solid #f39c12; /* Muted gold/orange border */
+    padding-bottom: 0.5rem;
+    margin-top: 1.5rem;
+    font-size: 1.4rem;
+    font-weight: 400;
+}
+
+/* Styled input fields */
+input[type="date"], input[type="text"] {
+    padding: 0.8rem;
+    border: 1px solid #f1c40f; /* Muted gold border */
+    border-radius: 8px; /* Softer, more rounded corners */
+    width: 100%;
+    font-size: 1rem;
+    background-color: #ffffff;
+}
+input[type="date"]:focus, input[type="text"]:focus {
+    outline: none;
+    border-color: #e67e22;
+    box-shadow: 0 0 0 2px rgba(230, 126, 34, 0.2);
+}
+
+
+/* Themed buttons */
+button {
+    background: linear-gradient(145deg, #f39c12, #e67e22); /* Orange gradient */
+    color: #fff;
+    border: none;
+    padding: 0.8rem 1.2rem;
+    margin-top: 0.5rem;
+    border-radius: 8px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    width: 100%;
+}
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(230, 126, 34, 0.3);
+}
+
+/* Themed card containers for forms */
+.card {
+    background-color: #ffffff;
+    border: none;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.07);
+}
+
+/* Wrapper to make the table scroll horizontally on small screens */
+.table-wrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+}
+
+/* General table styling */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+thead {
+    /* No background color for a cleaner look */
+    border-bottom: 2px solid #e67e22;
+}
+th {
+    padding: 0.8rem 1rem;
+    text-align: left;
+    color: #f4f1f0;
+    font-weight: 600;
+}
+td {
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #fdebd0; /* Very light orange separator */
+    white-space: nowrap;
+}
+tr:last-child td {
+    border-bottom: none;
+}
+.action-cell {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+.action-cell button {
+    width: auto;
+    flex-grow: 1;
+    font-size: 0.9em;
+    padding: 0.5rem 0.8rem;
+    box-shadow: none; /* No shadow for small buttons */
+}
+.action-cell button:hover {
+    transform: none; /* No lift effect for small buttons */
+    box-shadow: none;
+}
+/* Custom colors for Present/Absent buttons */
+.present-btn { background: #3dad24; }
+.present-btn:hover { background: #3dad24; }
+.absent-btn { background: #c0392b; }
+.absent-btn:hover { background: #e74c3c; }
+
+
+/* Media Query for small screens (phones) */
+@media (max-width: 600px) {
+    h1 { font-size: 1.8rem; }
+    .card { padding: 1rem; }
+    th, td { padding: 0.6rem; }
+}
+    </style>
 </head>
 <body>
     <div th:replace="~{fragments/header :: navbar}"></div>
+
     <div class="container">
         <h1>Mark Daily Attendance</h1>
-        <div class="form-container">
+        <div id="message-container"></div>
+
+        <div class="form-container card">
             <h2>Select Date</h2>
-            <form th:action="@{/attendance}" method="get">
-                <input type="date" name="date" th:value="${selectedDate}" onchange="this.form.submit()" required>
+            <input type="date" id="attendance-date" th:value="${#temporals.format(T(java.time.LocalDate).now(), 'yyyy-MM-dd')}">
+        </div>
+
+        <div class="form-container card">
+            <h2>Quick Mark Present</h2>
+            <form id="quick-mark-form">
+                <input type="text" id="quick-mark-tapasvi-id" placeholder="Enter Tapasvi ID" required>
+                <button type="submit">Mark Present</button>
             </form>
         </div>
-        <h2>Attendance for <span th:text="${#temporals.format(selectedDate, 'MMMM dd, yyyy')}"></span></h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Action (Mark Absent / Present)</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr th:each="record : ${attendanceRecords}">
-                    <td th:text="${record.employee.name}"></td>
-                    <td>
-                        <strong th:text="${record.status}"
-                                th:classappend="${record.status.name() == 'PRESENT'} ? 'text-success' : 'text-danger'">
+
+        <h2>Attendance for <span id="selected-date-display"></span></h2>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Tapasvi ID</th>
+                        <th>Name</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="attendance-table-body">
+                    <!-- Data will be loaded here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script>
+// Your JavaScript logic is already excellent and does not need any changes.
+// I am including it here for completeness so you can copy-paste the whole file.
+document.addEventListener('DOMContentLoaded', () => {
+    // --- Variables ---
+    const API_URL = window.location.origin;
+    const dateInput = document.getElementById('attendance-date');
+    const dateDisplay = document.getElementById('selected-date-display');
+    const tableBody = document.getElementById('attendance-table-body');
+    const messageContainer = document.getElementById('message-container');
+    const quickMarkForm = document.getElementById('quick-mark-form');
+    const quickMarkInput = document.getElementById('quick-mark-tapasvi-id');
+
+    // --- Functions ---
+    function showMessage(text, type = 'success') {
+        messageContainer.className = `message ${type}`;
+        messageContainer.textContent = text;
+        setTimeout(() => { messageContainer.textContent = ''; }, 4000);
+    }
+    
+    async function fetchAndDisplayReport() {
+        const selectedDate = dateInput.value;
+        if (!selectedDate) return;
+
+        const formattedDate = new Date(selectedDate + 'T00:00:00').toLocaleDateString('en-us', {
+            year: 'numeric', month: 'long', day: 'numeric'
+        });
+        dateDisplay.textContent = formattedDate;
+        
+        tableBody.innerHTML = '<tr><td colspan="4">Loading...</td></tr>';
+
+        try {
+            const [usersResponse, reportResponse] = await Promise.all([
+                fetch(`${API_URL}/api/users`),
+                fetch(`${API_URL}/api/attendance/report?date=${selectedDate}`)
+            ]);
+
+            if (!usersResponse.ok || !reportResponse.ok) {
+                throw new Error('Failed to load data.');
+            }
+            
+            const allUsers = await usersResponse.json();
+            const reportData = await reportResponse.json();
+            const statusMap = new Map(reportData.map(r => [r.userId, r.status]));
+            
+            tableBody.innerHTML = '';
+
+            if (allUsers.length === 0) {
+                 tableBody.innerHTML = '<tr><td colspan="4">No Tapasvis found. Please add Tapasvi first.</td></tr>';
+                 return;
+            }
+
+            allUsers.forEach(user => {
+                const status = statusMap.get(user.id) || 'NOT_MARKED';
+                
+                const row = document.createElement('tr');
+                row.setAttribute('data-user-row-id', user.id);
+                
+                row.innerHTML = `
+                    <td>${user.tapasviId}</td>
+                    <td>${user.name}</td>
+                    <td class="status-cell">
+                        <strong class="${status === 'PRESENT' ? 'text-success' : (status === 'ABSENT' ? 'text-danger' : '')}">
+                            ${status.replace('_', ' ')}
                         </strong>
                     </td>
-                    <td>
-                        <form th:action="${record.status.name() == 'ABSENT'} ? @{/attendance/mark-present} : @{/attendance/mark-absent}" method="post" class="action-form">
-                            <input type="hidden" name="recordId" th:value="${record.id}" />
-                            <input type="hidden" name="date" th:value="${selectedDate}" />
-                            <label class="switch">
-                                <input type="checkbox" onchange="this.form.submit()" th:checked="${record.status.name() == 'PRESENT'}">
-                                <span class="slider"></span>
-                            </label>
-                        </form>
+                    <td class="action-cell">
+                        <button class="present-btn" data-user-id="${user.id}">Present</button>
+                        <button class="absent-btn" data-user-id="${user.id}">Absent</button>
                     </td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
+                `;
+                tableBody.appendChild(row);
+            });
+
+        } catch (error) {
+            console.error('Error:', error);
+            tableBody.innerHTML = `<tr><td colspan="4">Error loading attendance data.</td></tr>`;
+        }
+    }
+
+    async function quickMarkPresent(event) {
+        event.preventDefault();
+        const tapasviId = quickMarkInput.value.trim();
+        const selectedDate = dateInput.value;
+
+        if (!tapasviId || !selectedDate) {
+            showMessage('Please select a date and enter an ID.', 'error');
+            return;
+        }
+
+        try {
+            const userResponse = await fetch(`${API_URL}/api/users/by-tapasvi-id/${tapasviId}`);
+            if (!userResponse.ok) throw new Error('Tapasvi with that Tapasvi ID not found.');
+
+            const employee = await userResponse.json();
+            const internalUserId = employee.id;
+
+            const attendanceData = {
+                userId: internalUserId,
+                date: selectedDate,
+                status: 'PRESENT'
+            };
+            
+            const attendanceResponse = await fetch(`${API_URL}/api/attendance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(attendanceData)
+            });
+
+            if (!attendanceResponse.ok) throw new Error('Failed to mark attendance.');
+            
+            showMessage(`Marked ${employee.name} as PRESENT.`, 'success');
+            quickMarkForm.reset();
+            fetchAndDisplayReport();
+
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage(error.message, 'error');
+        }
+    }
+
+    async function markAttendance(userId, status) {
+        const attendanceData = { userId, date: dateInput.value, status };
+
+        try {
+            const response = await fetch(`${API_URL}/api/attendance`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(attendanceData)
+            });
+            if (!response.ok) throw new Error(`Failed to mark as ${status}`);
+
+            const row = tableBody.querySelector(`tr[data-user-row-id="${userId}"]`);
+            if (row) {
+                const statusCell = row.querySelector('.status-cell strong');
+                statusCell.textContent = status.replace('_', ' ');
+                statusCell.className = `${status === 'PRESENT' ? 'text-success' : 'text-danger'}`;
+            }
+            showMessage(`Marked ${status} successfully.`, 'success');
+
+        } catch (error) {
+            console.error(error);
+            showMessage(error.message, 'error');
+        }
+    }
+    
+    // --- Event Listeners ---
+    dateInput.addEventListener('change', fetchAndDisplayReport);
+    quickMarkForm.addEventListener('submit', quickMarkPresent);
+    tableBody.addEventListener('click', (event) => {
+        const target = event.target;
+        if (target.tagName === 'BUTTON') {
+            const userId = target.dataset.userId;
+            const status = target.classList.contains('present-btn') ? 'PRESENT' : 'ABSENT';
+            markAttendance(userId, status);
+        }
+    });
+
+    // --- Initial Load ---
+    fetchAndDisplayReport();
+});
+</script>
 </body>
 </html>

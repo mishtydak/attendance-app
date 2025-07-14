@@ -10,48 +10,48 @@
     <div class="container">
         <h1>Attendance Report Generator</h1>
         <div class="form-container">
-            <!-- I've kept your custom "Tapasvi" text -->
             <h2>Select Tapasvi by ID</h2>
             <form th:action="@{/report}" method="get">
-                <label for="employeeIdInput">Enter Tapasvi ID Number:</label>
-                
-                <!-- The <select> dropdown is replaced with this <input> -->
-                <input type="number" 
-                       id="employeeIdInput" 
-                       name="employeeId" 
-                       placeholder="e.g., 1"
+                <label for="tapasviIdInput">Enter Tapasvi ID:</label>
+                <input type="text" 
+                       id="tapasviIdInput" 
+                       name="tapasviId" 
+                       placeholder="e.g., 101, T05"
                        required
-                       th:value="${selectedEmployeeId}" />
-
+                       th:value="${selectedTapasviId}" />
                 <button type="submit">Generate Report</button>
             </form>
         </div>
-
-        <!-- This section for showing results remains exactly the same -->
-        <div th:if="${attendanceRecords}">
+        <!-- This 'th:if' checks if the 'attendanceRecords' variable was added to the model at all. -->
+        <!-- It will only be present if a valid employee was found. -->
+        <div th:if="${attendanceRecords != null}">
             <h2>Report Results</h2>
-            <table>
+
+            <!-- CASE 1: The list is NOT empty. Show the table. -->
+            <table th:if="${!#lists.isEmpty(attendanceRecords)}">
                 <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Status</th>
-                </tr>
+                    <tr>
+                        <th>Date</th>
+                        <th>Status</th>
+                    </tr>
                 </thead>
                 <tbody>
-                <tr th:each="record : ${attendanceRecords}">
-                    <td th:text="${#temporals.format(record.date, 'MMMM dd, yyyy')}"></td>
-                    <td th:text="${record.status}" th:classappend="${record.status.name() == 'PRESENT'} ? 'text-success' : 'text-danger'"></td>
-                </tr>
+                    <tr th:each="record : ${attendanceRecords}">
+                        <td th:text="${#temporals.format(record.date, 'MMMM dd, yyyy')}"></td>
+                        <td th:text="${record.status}" th:classappend="${record.status.name() == 'PRESENT'} ? 'text-success' : 'text-danger'"></td>
+                    </tr>
                 </tbody>
             </table>
+
+            <!-- CASE 2: The list IS empty. Show the "No records found" message. -->
             <div th:if="${#lists.isEmpty(attendanceRecords)}" class="message">
                 No attendance records found for the selected employee.
             </div>
         </div>
 
-        <!-- Add a message for when an invalid ID is entered -->
-        <div th:if="${param.employeeId != null and attendanceRecords == null}" class="message error">
-            No employee found with the ID: <span th:text="${param.employeeId}"></span>. Please enter a valid ID.
+        <!-- This error message for an invalid ID remains the same. -->
+        <div th:if="${param.tapasviId != null and attendanceRecords == null}" class="message error">
+            No Tapasvi found with the Tapasvi ID: <span th:text="${param.tapasviId}"></span>. Please enter a valid ID.
         </div>
     </div>
 </body>

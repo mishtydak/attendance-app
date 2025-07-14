@@ -2,46 +2,130 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Employee Management</title>
+    <title>Tapasvi Management</title>
     <div th:replace="~{fragments/header :: head}"></div>
 </head>
 <body>
     <div th:replace="~{fragments/header :: navbar}"></div>
+
     <div class="container">
         <h1>Tapasvi Management</h1>
-        <div th:if="${successMessage}" class="message success" th:text="${successMessage}"></div>
-        <div th:if="${errorMessage}" class="message error" th:text="${errorMessage}"></div>
-        <div class="form-container">
+        <div id="message-container"></div>
+
+        <div class="form-container card">
             <h2>Add New Tapasvi</h2>
-            <form th:action="@{/employees/add}" method="post">
-                <input type="text" name="name" placeholder="Full Name" required>
-                <input type="tel" name="phoneNumber" placeholder="Phone Number" required>
+            <form id="add-employee-form">
+                <input type="text" id="new-employee-tapasvi-id" placeholder="Tapasvi ID (e.g., 101, T05)" required>
+                <input type="text" id="new-employee-name" placeholder="Full Name" required>
+                <input type="tel" id="new-employee-phone" placeholder="Phone Number" required>
                 <button type="submit">Add</button>
             </form>
         </div>
-        <h2>Availabel Tapasvi</h2>
+
+        <h2 style="margin-top: 2rem;">Available Tapasvis</h2>
         <table>
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>Tapasvi ID</th>
                     <th>Name</th>
                     <th>Phone Number</th>
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr th:each="emp : ${employees}">
-                    <td th:text="${emp.id}"></td>
+            <tbody id="employee-table-body">
+                <tr th:each="emp : ${employees}" th:attr="data-employee-id=${emp.id}">
+                    <!-- ******* ADDED NEW TABLE CELL TO DISPLAY THE ID ******* -->
+                    <td th:text="${emp.tapasviId}"></td>
+                    <!-- **************************************************** -->
                     <td th:text="${emp.name}"></td>
                     <td th:text="${emp.phoneNumber}"></td>
                     <td>
-                        <form th:action="@{/employees/delete/{id}(id=${emp.id})}" method="post" style="display:inline;">
-                            <button type="submit" class="delete" onclick="return confirm('Are you sure?');">Delete</button>
-                        </form>
+                        <button class="delete-btn" th:attr="data-employee-id=${emp.id}">Delete</button>
                     </td>
                 </tr>
             </tbody>
         </table>
     </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const API_URL = window.location.origin;
+    const addForm = document.getElementById('add-employee-form');
+    // *** GET A REFERENCE TO THE NEW INPUT FIELD ***
+    const tapasviIdInput = document.getElementById('new-employee-tapasvi-id');
+    const nameInput = document.getElementById('new-employee-name');
+    const phoneInput = document.getElementById('new-employee-phone');
+    const tableBody = document.getElementById('employee-table-body');
+    const messageContainer = document.getElementById('message-container');
+
+    function addEmployeeToTable(employee) {
+        const row = document.createElement('tr');
+        row.setAttribute('data-employee-id', employee.id);
+        // *** UPDATE THE TABLE ROW HTML ***
+        row.innerHTML = `
+            <td>${employee.tapasviId}</td>
+            <td>${employee.name}</td>
+            <td>${employee.phoneNumber}</td>
+            <td>
+                <button class="delete-btn" data-employee-id="${employee.id}">Delete</button>
+            </td>
+        `;
+        tableBody.appendChild(row);
+    }
+
+    function showMessage(text, type = 'success') {
+        messageContainer.className = `message ${type}`;
+        messageContainer.textContent = text;
+        setTimeout(() => { messageContainer.textContent = ''; }, 4000);
+    }
+
+    addForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        
+        const employeeData = {
+            tapasviId: tapasviIdInput.value.trim(),
+            name: nameInput.value.trim(),
+            phoneNumber: phoneInput.value.trim()
+        };
+
+        try {
+            const response = await fetch(`${API_URL}/api/users`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(employeeData)
+            });
+            if (!response.ok) {
+               
+                throw new Error('Failed to add employee. Tapasvi ID or Phone Number might already exist.');
+            }
+            const newEmployee = await response.json();
+            addEmployeeToTable(newEmployee);
+            addForm.reset();
+            showMessage('Employee added successfully!', 'success');
+        } catch (error) {
+            console.error('Error:', error);
+            showMessage(error.message, 'error');
+        }
+    });
+
+    tableBody.addEventListener('click', async (event) => {
+        if (event.target.classList.contains('delete-btn')) {
+            const employeeId = event.target.dataset.employeeId;
+            if (!confirm('Are you sure?')) return;
+            try {
+                const response = await fetch(`${API_URL}/api/users/${employeeId}`, {
+                    method: 'DELETE'
+                });
+                if (!response.ok) throw new Error('Failed to delete employee.');
+                event.target.closest('tr').remove();
+                showMessage('Employee deleted successfully!', 'success');
+            } catch (error) {
+                console.error('Error:', error);
+                showMessage(error.message, 'error');
+            }
+        }
+    });
+});
+</script>
 </body>
 </html>

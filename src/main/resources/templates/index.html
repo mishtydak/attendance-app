@@ -2,14 +2,70 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Home - Attendance App</title>
+    <title>Attendance App Home</title>
+
+    <!-- CRITICAL FOR MOBILE: This tag makes the page responsive -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Your header/CSS links. The new styles will go here or in your main CSS file. -->
     <div th:replace="~{fragments/header :: head}"></div>
+
+    <!-- Adding some extra styles directly for this page -->
+    <style>
+        /* Styles for the main content area */
+        .dashboard-container {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .dashboard-container h1 {
+            font-size: 2em; /* Larger font size for the main title */
+            margin-bottom: 10px;
+        }
+
+        .dashboard-container p {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 40px; /* More space below the subtitle */
+        }
+
+        /* This is the container for our new buttons */
+        .dashboard-buttons {
+            display: flex;
+            flex-direction: column; /* Stack buttons vertically on mobile */
+            gap: 15px; /* Space between the buttons */
+            max-width: 400px; /* Limit the width on larger screens */
+            margin: 0 auto; /* Center the container */
+        }
+
+        /* This is the style for each button */
+        .dashboard-button {
+            display: block;
+            padding: 18px 25px;
+            text-decoration: none;
+            color: white;
+            background-color: #ee8e2e; /* A nice green color */
+            border: none;
+            border-radius: 8px; /* Rounded corners */
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .dashboard-button:hover {
+            background-color: #ea770c; /* Darker green on hover */
+            transform: translateY(-2px); /* Slight lift effect on hover */
+        }
+    </style>
 </head>
 <body>
     <div th:replace="~{fragments/header :: navbar}"></div>
-    <div class="container">
-        <h1 th:text="${pageTitle}">Welcome</h1>
-        <p>Use the navigation bar above to manage or mark attendance.</p>
+
+    <div class="container dashboard-container">
+        <h1>Jai Jinendra 
+            Welcome to the Attendance Management System</h1>
     </div>
 </body>
 </html>

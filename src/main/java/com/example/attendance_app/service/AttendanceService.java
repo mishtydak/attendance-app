@@ -1,5 +1,6 @@
 package com.example.attendance_app.service;
 
+import com.example.attendance_app.dto.AttendanceRequest;
 import com.example.attendance_app.model.AttendanceRecord;
 import com.example.attendance_app.model.AttendanceStatus;
 import com.example.attendance_app.model.Employee;
@@ -11,59 +12,46 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
 @Service
 public class AttendanceService {
 
     @Autowired
     private AttendanceRepository attendanceRepository;
+    
     @Autowired
     private EmployeeRepository employeeRepository;
 
     @Transactional
-    public List<AttendanceRecord> getOrGenerateAttendanceRecordsForDate(LocalDate date) {
-        List<AttendanceRecord> existingRecords = attendanceRepository.findByDate(date);
-        List<Employee> allEmployees = employeeRepository.findAll();
+    public AttendanceRecord markOrUpdateAttendance(AttendanceRequest request) {
+        Employee employee = employeeRepository.findById(request.getUserId())
+                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + request.getUserId()));
 
-        if (existingRecords.size() == allEmployees.size()) {
-            return existingRecords;
+        Optional<AttendanceRecord> existingRecordOpt = attendanceRepository.findByEmployeeAndDate(employee, request.getDate());
+
+        AttendanceRecord recordToSave;
+        if (existingRecordOpt.isPresent()) {
+            recordToSave = existingRecordOpt.get();
+            recordToSave.setStatus(request.getStatus());
+        } else {
+            recordToSave = new AttendanceRecord();
+            recordToSave.setEmployee(employee);
+            recordToSave.setDate(request.getDate());
+            recordToSave.setStatus(request.getStatus());
         }
+        
+        return attendanceRepository.save(recordToSave);
+    }
 
-        Map<Long, AttendanceRecord> recordsByEmployeeId = existingRecords.stream()
-                .collect(Collectors.toMap(record -> record.getEmployee().getId(), record -> record));
-
-        List<AttendanceRecord> recordsToCreate = allEmployees.stream()
-                .filter(employee -> !recordsByEmployeeId.containsKey(employee.getId()))
-                .map(employee -> {
-                    AttendanceRecord newRecord = new AttendanceRecord();
-                    newRecord.setEmployee(employee);
-                    newRecord.setDate(date);
-                    newRecord.setStatus(AttendanceStatus.ABSENT);
-                    return newRecord;
-                })
-                .collect(Collectors.toList());
-
-        attendanceRepository.saveAll(recordsToCreate);
+    // *****************************************************************
+    // *** REPLACED THE COMPLEX METHOD WITH THIS SIMPLE, RELIABLE ONE ***
+    // *****************************************************************
+    public List<AttendanceRecord> getReportForDate(LocalDate date) {
+        // This method now ONLY reads from the database. It is safe and will not error.
         return attendanceRepository.findByDate(date);
     }
-
-    @Transactional
-    public void markPresent(Long recordId) {
-        AttendanceRecord record = attendanceRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Attendance record not found"));
-        record.setStatus(AttendanceStatus.PRESENT);
-        attendanceRepository.save(record);
-    }
-
-    @Transactional
-    public void markAbsent(Long recordId) {
-        AttendanceRecord record = attendanceRepository.findById(recordId)
-                .orElseThrow(() -> new RuntimeException("Attendance record not found"));
-        record.setStatus(AttendanceStatus.ABSENT);
-        attendanceRepository.save(record);
-    }
+    // *****************************************************************
 
     public List<AttendanceRecord> getAttendanceRecords(Long employeeId) {
         return attendanceRepository.findByEmployeeIdOrderByDateDesc(employeeId);
