@@ -1,29 +1,33 @@
-# This is the final, simplified render.yaml that aligns with Render's latest native environment specs.
+# This file now tells Render to build and run a Docker container.
 services:
-  # 1. Your Spring Boot Web Service
+  # 1. Your Spring Boot Web Service, now running inside Docker
   - type: web
     name: attendance-app
-    # By removing the 'runtime' key, we let Render's build system
-    # infer the environment from the build command.
+    # THIS IS THE CRITICAL CHANGE: Tell Render to use a Docker environment
+    env: docker
     plan: free
     branch: main
-    buildCommand: "./mvnw clean install -DskipTests"
-    startCommand: "java -jar target/attendance-app-0.0.1-SNAPSHOT.jar"
+    # Health Check (important for Docker services)
+    healthCheckPath: /actuator/health
+    # Environment variables that link to the database below
     envVars:
       - key: DB_URL
         fromDatabase:
-          name: attendance-db-mishty # Must match the database name below
+          name: attendance-db-mishty
           property: connectionString
       - key: DB_USERNAME
         fromDatabase:
-          name: attendance-db-mishty # Must match the database name below
+          name: attendance-db-mishty
           property: user
       - key: DB_PASSWORD
         fromDatabase:
-          name: attendance-db-mishty # Must match the database name below
+          name: attendance-db-mishty
           property: password
+      # We need to tell Spring Boot which port Render wants it to use inside the container
+      - key: SERVER_PORT
+        value: 8080
 
-  # 2. Your PostgreSQL Database
+  # 2. Your PostgreSQL Database (this part is unchanged)
   - type: pserv
     name: attendance-db-mishty
     plan: free
