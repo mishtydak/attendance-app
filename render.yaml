@@ -1,39 +1,33 @@
 # This file tells Render how to deploy your services.
 services:
-  # This is your main Spring Boot application
+  # 1. This is your main Spring Boot application (the Web Service)
   - type: web
     name: attendance-app
-    # THIS IS THE MOST IMPORTANT LINE: Force the environment to be Java
-    env: java
-    # Plan: "free" for the free tier
+    # THIS IS THE CORRECTED LINE: Use 'runtime' instead of 'env' to specify the language.
+    runtime: java
     plan: free
-    # Build and start commands
-    buildCommand: "./mvnw clean install"
+    # Build and start commands for a standard Maven project
+    buildCommand: "./mvnw clean install -DskipTests"
     startCommand: "java -jar target/attendance-app-0.0.1-SNAPSHOT.jar"
-    # Link to your PostgreSQL database
-    # Make sure the 'name' here matches the name you gave your database on Render
-    # And the 'property' matches the environment variable name in your application.properties
+    # Environment variables that link to the database below
     envVars:
       - key: DB_URL
         fromDatabase:
-          name: attendance-postgres-db # <-- IMPORTANT: Change this if your DB has a different name
+          name: attendance-db-mishty # Must match the database name below
           property: connectionString
       - key: DB_USERNAME
         fromDatabase:
-          name: attendance-postgres-db # <-- IMPORTANT: Change this if your DB has a different name
+          name: attendance-db-mishty # Must match the database name below
           property: user
       - key: DB_PASSWORD
         fromDatabase:
-          name: attendance-postgres-db # <-- IMPORTANT: Change this if your DB has a different name
+          name: attendance-db-mishty # Must match the database name below
           property: password
 
-  # This section defines your PostgreSQL database
-  # Make sure the 'name' here matches the name you used above
+  # 2. This section defines your PostgreSQL database
   - type: pserv
-    name: attendance-postgres-db # <-- IMPORTANT: Change this if your DB has a different name
-    # The database engine
-    ipAllowList: [] # Allows all connections, or you can restrict it
+    name: attendance-db-mishty # A unique name for your database service
+    # The database engine. 'postgres' is for PostgreSQL.
+    databaseName: attendance_app_db # The name of the database inside the server
+    user: attendance_user # The username for the database
     plan: free
-    # Use 'postgres' for PostgreSQL
-    databaseName: attendance_db # This will be the name of the actual DB inside the server
-    user: db_user # You can choose a username
