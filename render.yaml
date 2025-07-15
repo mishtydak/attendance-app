@@ -1,33 +1,29 @@
-# This file tells Render how to deploy your services.
+# This is the final, simplified render.yaml that aligns with Render's latest native environment specs.
 services:
-  # 1. This is your main Spring Boot application (the Web Service)
+  # 1. Your Spring Boot Web Service
   - type: web
     name: attendance-app
-    runtime: java
+    # By removing the 'runtime' key, we let Render's build system
+    # infer the environment from the build command.
     plan: free
-    # Make sure this branch name matches your repository (e.g., main or master)
     branch: main
-    # Build and start commands for a standard Maven project
     buildCommand: "./mvnw clean install -DskipTests"
     startCommand: "java -jar target/attendance-app-0.0.1-SNAPSHOT.jar"
-    # Environment variables that link to the database below
     envVars:
       - key: DB_URL
         fromDatabase:
-          name: attendance-db-mishty # This name MUST match the database name below
+          name: attendance-db-mishty # Must match the database name below
           property: connectionString
       - key: DB_USERNAME
         fromDatabase:
-          name: attendance-db-mishty # This name MUST match the database name below
+          name: attendance-db-mishty # Must match the database name below
           property: user
       - key: DB_PASSWORD
         fromDatabase:
-          name: attendance-db-mishty # This name MUST match the database name below
+          name: attendance-db-mishty # Must match the database name below
           property: password
 
-  # 2. This section defines your PostgreSQL database
-  - type: pserv # 'pserv' stands for PostgreSQL Service
-    name: attendance-db-mishty # A unique name for your database service
+  # 2. Your PostgreSQL Database
+  - type: pserv
+    name: attendance-db-mishty
     plan: free
-    # By removing the 'databaseName' and 'user' keys, we let Render
-    # generate a secure, default name and user for us, which is the best practice.
