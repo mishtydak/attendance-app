@@ -1,13 +1,17 @@
 # Stage 1: Build the application using Maven
+# We use an official Maven image that has Java and Maven pre-installed.
 FROM maven:3.8.5-openjdk-17 AS build
 WORKDIR /app
 
 # Copy the entire project context
 COPY . .
 
-# Build the application directly. This is simpler and more robust.
-# It will download dependencies and compile in one step.
-RUN ./mvnw clean install -DskipTests
+# ***************************************************************
+# *** THIS IS THE FINAL FIX ***
+# *** We are now using 'mvn' (the system-wide Maven) instead of './mvnw' (the local wrapper)
+# *** This bypasses the need for the missing .mvn folder.
+# ***************************************************************
+RUN mvn clean install -DskipTests
 
 # Stage 2: Create the final, lightweight production image
 FROM openjdk:17-jdk-slim
