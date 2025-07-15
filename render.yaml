@@ -3,9 +3,10 @@ services:
   # 1. This is your main Spring Boot application (the Web Service)
   - type: web
     name: attendance-app
-    # THIS IS THE CORRECTED LINE: Use 'runtime' instead of 'env' to specify the language.
     runtime: java
     plan: free
+    # Make sure this branch name matches your repository (e.g., main or master)
+    branch: main
     # Build and start commands for a standard Maven project
     buildCommand: "./mvnw clean install -DskipTests"
     startCommand: "java -jar target/attendance-app-0.0.1-SNAPSHOT.jar"
@@ -13,21 +14,20 @@ services:
     envVars:
       - key: DB_URL
         fromDatabase:
-          name: attendance-db-mishty # Must match the database name below
+          name: attendance-db-mishty # This name MUST match the database name below
           property: connectionString
       - key: DB_USERNAME
         fromDatabase:
-          name: attendance-db-mishty # Must match the database name below
+          name: attendance-db-mishty # This name MUST match the database name below
           property: user
       - key: DB_PASSWORD
         fromDatabase:
-          name: attendance-db-mishty # Must match the database name below
+          name: attendance-db-mishty # This name MUST match the database name below
           property: password
 
   # 2. This section defines your PostgreSQL database
-  - type: pserv
+  - type: pserv # 'pserv' stands for PostgreSQL Service
     name: attendance-db-mishty # A unique name for your database service
-    # The database engine. 'postgres' is for PostgreSQL.
-    databaseName: attendance_app_db # The name of the database inside the server
-    user: attendance_user # The username for the database
     plan: free
+    # By removing the 'databaseName' and 'user' keys, we let Render
+    # generate a secure, default name and user for us, which is the best practice.
