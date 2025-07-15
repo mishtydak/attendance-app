@@ -8,9 +8,12 @@ WORKDIR /app
 # Copy the pom.xml file first to leverage Docker's layer caching
 COPY pom.xml .
 
-# Copy the Maven wrapper files
-COPY .mvn/ .mvn
-COPY mvnw mvnw.cmd ./
+# --- THIS IS THE CORRECTED SECTION ---
+# Copy the Maven wrapper scripts
+COPY mvnw ./
+COPY mvnw.cmd ./
+# The line "COPY .mvn/ .mvn" has been removed because the folder does not exist.
+# ------------------------------------
 
 # Download all dependencies. This is cached if pom.xml doesn't change.
 RUN ./mvnw dependency:go-offline
@@ -32,8 +35,7 @@ WORKDIR /app
 # Copy the .jar file that was built in the 'build' stage
 COPY --from=build /app/target/attendance-app-0.0.1-SNAPSHOT.jar ./app.jar
 
-# Expose the port that the application will run on. 
-# Render will map this to the public internet.
+# Expose the port that the application will run on.
 EXPOSE 8080
 
 # The command to run when the container starts
