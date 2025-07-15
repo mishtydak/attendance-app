@@ -27,4 +27,6 @@ hs_err_pid*
 # IDE settings
 .idea/
 *.iml
+# Database files
+*.db
 .vscode/
